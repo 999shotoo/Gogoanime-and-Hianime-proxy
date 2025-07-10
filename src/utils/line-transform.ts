@@ -5,11 +5,15 @@ export const allowedExtensions = ['.ts', '.png', '.jpg', '.webp', '.ico', '.html
 export class LineTransform extends Transform {
   private buffer: string;
   private baseUrl: string;
+  private ref: string;
+  private orgin: string;
 
-  constructor(baseUrl: string) {
+  constructor(baseUrl: string, ref: string = '', orgin: string = '') {
     super();
     this.buffer = '';
     this.baseUrl = baseUrl;
+    this.ref = ref;
+    this.orgin = orgin;
   }
 
   _transform(chunk: Buffer, encoding: BufferEncoding, callback: TransformCallback) {
@@ -34,16 +38,21 @@ export class LineTransform extends Transform {
   }
 
   private processLine(line: string): string {
+    const params = [];
+    if (this.ref) params.push(`ref=${encodeURIComponent(this.ref)}`);
+    if (this.orgin) params.push(`orgin=${encodeURIComponent(this.orgin)}`);
+    const paramStr = params.length ? `&${params.join('&')}` : '';
+
     if (line.endsWith('.m3u8') || line.endsWith('.ts')) {
-      return `m3u8-proxy?url=${this.baseUrl}${line}`;
+      return `m3u8-proxy?url=${this.baseUrl}${line}${paramStr}`;
     }
 
     if (line.startsWith("http") && !line.endsWith(".m3u8")) {
-      return `m3u8-proxy?url=${encodeURIComponent(line)}`;
+      return `m3u8-proxy?url=${encodeURIComponent(line)}${paramStr}`;
     }
 
     if (allowedExtensions.some(ext => line.endsWith(ext))) {
-      return `m3u8-proxy?url=${line}`;
+      return `m3u8-proxy?url=${line}${paramStr}`;
     }
 
     return line;

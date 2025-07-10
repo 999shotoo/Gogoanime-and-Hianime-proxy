@@ -46,7 +46,7 @@ export const m3u8Proxy = async (req: Request, res: Response) => {
     }
 
     // For m3u8 playlists (including live), stream and transform lines as they arrive
-    const transform = new LineTransform(baseUrl);
+    const transform = new LineTransform(baseUrl, referer, origin);
     response.data.pipe(transform).pipe(res);
   } catch (error: any) {
     console.log(error.message);
